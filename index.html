@@ -246,6 +246,52 @@
   }
 
   /* ---------------------------------------------------------------
+     Shared tool bits (BPM tapper, PGP verify)
+  --------------------------------------------------------------- */
+  .tool-row{
+    display:flex; flex-wrap:wrap; align-items:center; gap:1em;
+    font-size:var(--font-size-small);
+    margin:.5em 0;
+  }
+  .tool-row button{ margin:0; }
+  .tool-row button.small{ padding:4px 12px; font-size:var(--font-size-small); }
+  .hint{ font-size:var(--font-size-small); }
+  kbd{
+    font-family:var(--font-stack-mono); font-size:13px;
+    border:1px solid var(--foreground); padding:0 4px;
+    background:var(--table-row-even-bg);
+  }
+  table.kv th{ width:30%; }
+  table.kv td,table.kv th{ font-variant-numeric:tabular-nums; }
+
+  /* ---------------------------------------------------------------
+     BPM tapper
+  --------------------------------------------------------------- */
+  #tap-btn{ width:240px; padding:28px 20px; font-size:1.2em; }
+  #tap-btn.flash{ background-color:var(--table-header-bg); }
+  .bpm-readout{ font-size:2em; font-weight:700; font-variant-numeric:tabular-nums; min-width:5ch; }
+  .bpm-readout .unit{ font-size:.5em; font-weight:400; }
+  #bpm-notes td:not(:first-child),#bpm-notes th:not(:first-child){ text-align:right; font-variant-numeric:tabular-nums; }
+  @media (max-width:768px){ #tap-btn{ width:100%; } }
+
+  /* ---------------------------------------------------------------
+     PGP verify
+  --------------------------------------------------------------- */
+  textarea.pgp{
+    display:block; width:100%; min-height:12em; resize:vertical;
+    font-family:var(--font-stack-mono); font-size:13px; line-height:1.35;
+    border:1px solid var(--table-border-color); border-radius:0;
+    background:var(--table-row-even-bg); color:var(--foreground);
+    padding:.6em .8em; margin:.25em 0 .5em;
+  }
+  textarea.pgp:focus{ outline:1px solid var(--foreground); background:#fff; }
+  label.field{ display:block; font-size:var(--font-size-small); font-weight:700; margin-top:.5em; }
+  label.field .opt{ font-weight:400; }
+  .verdict-ok{ color:var(--accent); font-weight:700; }
+  .verdict-bad{ color:#b00000; font-weight:700; }
+  #pgp-result pre{ margin:0; white-space:pre-wrap; word-break:break-word; font-family:var(--font-stack-mono); font-size:13px; }
+
+  /* ---------------------------------------------------------------
      Projects table extras
   --------------------------------------------------------------- */
   td.stars{ width:48px; text-align:right; font-variant-numeric:tabular-nums; }
@@ -309,7 +355,9 @@
           <a class="toc-link" href="#projects">Projects</a>
           <a class="toc-link" href="#email">Email</a>
           <a class="toc-link" href="#resume">Resume</a>
+          <a class="toc-link" href="#bpm">BPM Tapper</a>
           <a class="toc-link" href="#pgp">PGP Key</a>
+          <a class="toc-link" href="#verify">Verify Signature</a>
         </nav>
       </div>
 
@@ -363,6 +411,31 @@
       <p><a href="DarcyResume2026.pdf" target="_blank" rel="noopener">Download resume (PDF)</a></p>
     </section>
 
+    <!-- ============ BPM TAPPER ============ -->
+    <section id="bpm">
+      <h2 class="table-title">BPM Tapper</h2>
+      <p class="hint">Tap along to the beat. Click the button, or press <kbd>T</kbd> / <kbd>Space</kbd>. Stop for two seconds to start over.</p>
+      <div class="tool-row">
+        <button type="button" id="tap-btn">Tap</button>
+        <div class="bpm-readout"><span id="bpm-value">—</span> <span class="unit">BPM</span></div>
+        <button type="button" class="small" id="bpm-half">&divide;2</button>
+        <button type="button" class="small" id="bpm-double">&times;2</button>
+        <button type="button" class="small" id="bpm-reset">Reset</button>
+      </div>
+      <table class="kv">
+        <tbody>
+          <tr><th>Taps</th><td id="bpm-taps">0</td></tr>
+          <tr><th>Last 4 taps</th><td id="bpm-recent">—</td></tr>
+          <tr><th>Rounded</th><td id="bpm-round">—</td></tr>
+          <tr><th>One beat</th><td id="bpm-ms">—</td></tr>
+        </tbody>
+      </table>
+      <table id="bpm-notes">
+        <thead><tr><th>Note</th><th>Straight (ms)</th><th class="hide-on-mobile">Dotted (ms)</th><th class="hide-on-mobile">Triplet (ms)</th><th>Hz</th></tr></thead>
+        <tbody id="bpm-notes-body"></tbody>
+      </table>
+    </section>
+
     <!-- ============ PGP KEY ============ -->
     <section id="pgp">
       <h2 class="table-title">PGP Key</h2>
@@ -408,6 +481,30 @@ VwJsohL74NPc0tRCtz1L7v0ttA8pydg+EO8tR4VUWwpragFDy7ORKzG3jS4EAfVz
 4MVjdhmsdZHrourTB9+coZKNiw==
 =k81Q
 -----END PGP PUBLIC KEY BLOCK-----</pre>
+    </section>
+
+    <!-- ============ PGP VERIFY ============ -->
+    <section id="verify">
+      <h2 class="table-title">Verify Signature</h2>
+      <p class="hint">Check that a message really came from me. Paste a signed message below and it is checked against the key above, in your browser. Nothing is uploaded.</p>
+      <label class="field" for="pgp-msg">Signed message</label>
+      <textarea class="pgp" id="pgp-msg" spellcheck="false" placeholder="-----BEGIN PGP SIGNED MESSAGE-----&#10;Hash: SHA512&#10;&#10;…&#10;-----BEGIN PGP SIGNATURE-----&#10;…&#10;-----END PGP SIGNATURE-----"></textarea>
+      <label class="field" for="pgp-sig">Detached signature <span class="opt">(optional, if the message above is plain text)</span></label>
+      <textarea class="pgp" id="pgp-sig" spellcheck="false" style="min-height:6em" placeholder="-----BEGIN PGP SIGNATURE-----&#10;…&#10;-----END PGP SIGNATURE-----"></textarea>
+      <div class="tool-row">
+        <button type="button" class="small" id="pgp-verify">Verify</button>
+        <button type="button" class="small" id="pgp-clear">Clear</button>
+        <span id="pgp-status"></span>
+      </div>
+      <table class="kv" id="pgp-result" hidden>
+        <tbody>
+          <tr><th>Result</th><td id="pgp-r-verdict"></td></tr>
+          <tr><th>Signed by</th><td id="pgp-r-user"></td></tr>
+          <tr><th>Key ID</th><td><code id="pgp-r-key"></code></td></tr>
+          <tr><th>Signed on</th><td id="pgp-r-date"></td></tr>
+          <tr><th>Message</th><td><pre id="pgp-r-text"></pre></td></tr>
+        </tbody>
+      </table>
     </section>
     <hr />
 
@@ -654,6 +751,183 @@ document.getElementById("updated").textContent =
       load(curate(list).length ? list : CONFIG.projectsFallback);
     })
     .catch(function(){ load(CONFIG.projectsFallback); });
+})();
+
+/* ---------------- BPM TAPPER ---------------- */
+(function(){
+  var btn = document.getElementById("tap-btn");
+  if(!btn) return;
+  var $ = function(id){ return document.getElementById(id); };
+  var taps = [], mult = 1, RESET_MS = 2000;
+  var NOTES = [["1/1",4],["1/2",2],["1/4",1],["1/8",.5],["1/16",.25],["1/32",.125]];
+
+  function fmt(n, d){ return n.toFixed(d == null ? 1 : d); }
+
+  function bpmOver(list){
+    if(list.length < 2) return null;
+    return 60000 * (list.length - 1) / (list[list.length-1] - list[0]);
+  }
+
+  function render(){
+    var all = bpmOver(taps), recent = bpmOver(taps.slice(-5));
+    $("bpm-taps").textContent = taps.length;
+    if(all == null){
+      $("bpm-value").textContent = "—";
+      ["bpm-recent","bpm-round","bpm-ms"].forEach(function(id){ $(id).textContent = "—"; });
+      $("bpm-notes-body").innerHTML = '<tr><td colspan="5">Tap at least twice.</td></tr>';
+      return;
+    }
+    var bpm = all * mult, beat = 60000 / bpm;
+    $("bpm-value").textContent = fmt(bpm);
+    $("bpm-recent").textContent = fmt(recent * mult) + " BPM";
+    $("bpm-round").textContent = Math.round(bpm) + " BPM";
+    $("bpm-ms").textContent = fmt(beat, 2) + " ms";
+    $("bpm-notes-body").innerHTML = NOTES.map(function(n){
+      var ms = beat * n[1];
+      return "<tr><td>" + n[0] + "</td><td>" + fmt(ms) + "</td>"
+           + '<td class="hide-on-mobile">' + fmt(ms * 1.5) + "</td>"
+           + '<td class="hide-on-mobile">' + fmt(ms * 2 / 3) + "</td>"
+           + "<td>" + fmt(1000 / ms, 3) + "</td></tr>";
+    }).join("");
+  }
+
+  function tap(){
+    var now = performance.now();
+    if(taps.length && now - taps[taps.length-1] > RESET_MS){ taps = []; mult = 1; }
+    taps.push(now);
+    btn.classList.add("flash");
+    setTimeout(function(){ btn.classList.remove("flash"); }, 80);
+    render();
+  }
+
+  function reset(){ taps = []; mult = 1; render(); }
+
+  // pointerdown is lower latency than click; keyboard taps are handled below
+  btn.addEventListener("pointerdown", function(e){ if(e.button === 0) tap(); });
+  $("bpm-reset").addEventListener("click", reset);
+  $("bpm-half").addEventListener("click", function(){ mult /= 2; render(); });
+  $("bpm-double").addEventListener("click", function(){ mult *= 2; render(); });
+
+  document.addEventListener("keydown", function(e){
+    if(e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+    var t = e.target, tag = t && t.tagName;
+    if(tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || (t && t.isContentEditable)) return;
+    var isSpace = e.key === " ", isT = e.key === "t" || e.key === "T";
+    var onTap = t === btn && (isSpace || e.key === "Enter");
+    if(tag === "BUTTON" && !onTap) return;   // let other buttons keep Space/Enter
+    if(!(isSpace || isT || onTap)) return;
+    e.preventDefault();                       // no page scroll, no double tap via click
+    tap();
+  });
+
+  render();
+})();
+
+/* ---------------- PGP SIGNATURE VERIFY ---------------- */
+(function(){
+  var go = document.getElementById("pgp-verify");
+  if(!go) return;
+  var $ = function(id){ return document.getElementById(id); };
+  var LIB = "https://cdn.jsdelivr.net/npm/openpgp@5.11.2/dist/openpgp.min.js";
+  var SRI = "sha384-GSfnO+LcQAKSCm1NYG2u/acMR+jBE5ML42eWq3lKjR0Dglq3Zp4dWI3K319/7zmD";
+  var libPromise = null;
+
+  // load openpgp.js only when someone actually verifies something
+  function loadLib(){
+    if(window.openpgp) return Promise.resolve(window.openpgp);
+    if(libPromise) return libPromise;
+    libPromise = new Promise(function(resolve, reject){
+      var s = document.createElement("script");
+      s.src = LIB; s.integrity = SRI; s.crossOrigin = "anonymous";
+      s.onload = function(){ window.openpgp ? resolve(window.openpgp) : reject(new Error("library failed to start")); };
+      s.onerror = function(){ libPromise = null; reject(new Error("could not load openpgp.js")); };
+      document.head.appendChild(s);
+    });
+    return libPromise;
+  }
+
+  function status(msg){ $("pgp-status").textContent = msg || ""; }
+
+  function show(ok, verdict, info){
+    info = info || {};
+    var v = $("pgp-r-verdict");
+    v.textContent = verdict;
+    v.className = ok ? "verdict-ok" : "verdict-bad";
+    $("pgp-r-user").textContent = info.user || "—";
+    $("pgp-r-key").textContent  = info.keyID || "—";
+    $("pgp-r-date").textContent = info.date ? info.date.toISOString().slice(0,19).replace("T"," ") + "Z" : "—";
+    $("pgp-r-text").textContent = info.text == null ? "—" : info.text;
+    $("pgp-result").hidden = false;
+  }
+
+  function fmtKeyID(hex){ return hex.toUpperCase().replace(/(.{4})(?=.)/g, "$1 "); }
+
+  async function check(openpgp, key, message, signature){
+    var res = await openpgp.verify({ message: message, signature: signature, verificationKeys: key });
+    var sig = res.signatures[0];
+    if(!sig) throw new Error("No signature found.");
+    var info = { keyID: fmtKeyID(sig.keyID.toHex()), text: typeof res.data === "string" ? res.data : null };
+    try{ info.date = (await sig.signature).packets[0].created; }catch(e){}
+    try{
+      await sig.verified;
+    }catch(e){
+      e.info = info;
+      throw e;
+    }
+    return info;
+  }
+
+  async function verify(){
+    var raw = $("pgp-msg").value, sigRaw = $("pgp-sig").value.trim();
+    if(!raw.trim()){ status("Paste a signed message first."); return; }
+    go.disabled = true;
+    status("Loading…");
+    try{
+      var openpgp = await loadLib();
+      status("Checking…");
+      var key = await openpgp.readKey({ armoredKey: document.querySelector("#pgp pre.pgp").textContent.trim() });
+      var user = key.users[0] && key.users[0].userID ? key.users[0].userID.userID : "";
+      var txt = raw.trim(), info;
+
+      if(sigRaw){
+        // detached: try the text as pasted, then with the trailing newline most files have
+        var signature = await openpgp.readSignature({ armoredSignature: sigRaw });
+        var variants = [raw, raw.replace(/\r?\n?$/, "\n"), raw.replace(/\s+$/, "")], lastErr;
+        for(var i = 0; i < variants.length && !info; i++){
+          try{
+            var msg = await openpgp.createMessage({ binary: new TextEncoder().encode(variants[i]) });
+            info = await check(openpgp, key, msg, signature);
+            info.text = variants[i];
+          }catch(e){ lastErr = e; }
+        }
+        if(!info) throw lastErr;
+      }else if(/-----BEGIN PGP SIGNED MESSAGE-----/.test(txt)){
+        info = await check(openpgp, key, await openpgp.readCleartextMessage({ cleartextMessage: txt }));
+      }else if(/-----BEGIN PGP MESSAGE-----/.test(txt)){
+        info = await check(openpgp, key, await openpgp.readMessage({ armoredMessage: txt }));
+      }else{
+        throw new Error("That doesn't look like a signed message. Paste a clearsigned message, or the plain text plus a detached signature.");
+      }
+      info.user = user;
+      show(true, "✓ Good signature from this key", info);
+      status("");
+    }catch(e){
+      var m = String((e && e.message) || e);
+      var verdict = /Could not find signing key/i.test(m) ? "✗ Not signed by this key"
+                  : /Signed digest did not match|digest/i.test(m) ? "✗ Bad signature: the message was changed"
+                  : "✗ Could not verify";
+      if(e && e.info){ show(false, verdict, e.info); status(""); }
+      else{ $("pgp-result").hidden = true; status(verdict + ": " + m.replace(/^Error:\s*/, "")); }
+    }finally{
+      go.disabled = false;
+    }
+  }
+
+  go.addEventListener("click", verify);
+  $("pgp-clear").addEventListener("click", function(){
+    $("pgp-msg").value = ""; $("pgp-sig").value = "";
+    $("pgp-result").hidden = true; status("");
+  });
 })();
 </script>
 </body>
